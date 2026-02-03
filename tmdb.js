@@ -1,9 +1,4 @@
 
-// ⚠️ 请替换为你自己的 TMDB API Key
-const TMDB_API_KEY = "";
-const BASE_URL = "https://api.themoviedb.org/3";
-const IMAGE = "https://image.tmdb.org/t/p/w500";
-
 // =============================
 // ForwardWidgets - TMDB 完全开放版（播出平台最新剧集，显示当天及以前）
 // =============================
