@@ -1,4 +1,3 @@
-
 // =============================
 // ForwardWidgets - TMDB 完全开放版（所有平台最新剧集，显示今天及以前）
 // =============================
@@ -18,7 +17,7 @@ var WidgetMetadata = {
   title: "TMDB Full Open",
   description: "热门电影 / 热门剧集 / 高分 / 平台 / 出品公司 - 不屏蔽任何内容，显示今天及以前首播的剧集",
   author: "ChatGPT",
-  version: "1.7.2",
+  version: "1.7.3",
   requiredVersion: "0.0.1",
 
   modules: [
@@ -90,20 +89,22 @@ async function fetchTMDB(endpoint, params = {}) {
 }
 
 // =============================
-// 数据格式化 - 完全开放
+// 数据格式化 - 只保留有封面
 // =============================
 function formatItems(items, mediaType) {
-  return items.map(i => ({
-    id: i.id.toString(),
-    type: "tmdb",
-    mediaType: mediaType || (i.title ? "movie" : "tv"),
-    title: i.title || i.name,
-    posterPath: i.poster_path ? IMAGE + i.poster_path : undefined,
-    backdropPath: i.backdrop_path ? IMAGE + i.backdrop_path : undefined,
-    releaseDate: i.release_date || i.first_air_date,
-    rating: i.vote_average,
-    description: i.overview
-  }));
+  return items
+    .filter(i => i.poster_path && i.poster_path.trim() !== "") // 只保留有封面
+    .map(i => ({
+      id: i.id.toString(),
+      type: "tmdb",
+      mediaType: mediaType || (i.title ? "movie" : "tv"),
+      title: i.title || i.name,
+      posterPath: IMAGE + i.poster_path,
+      backdropPath: i.backdrop_path ? IMAGE + i.backdrop_path : undefined,
+      releaseDate: i.release_date || i.first_air_date,
+      rating: i.vote_average,
+      description: i.overview
+    }));
 }
 
 // =============================
