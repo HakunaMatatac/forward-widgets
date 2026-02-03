@@ -1,5 +1,5 @@
 // =============================
-// ForwardWidgets - TMDB 完全开放版（所有平台最新剧集，显示当天及以前）
+// ForwardWidgets - TMDB 完全开放版（所有平台最新剧集，显示今天及以前）
 // =============================
 
 // TMDB API Key 和备注
@@ -15,9 +15,9 @@ const IMAGE = "https://image.tmdb.org/t/p/w500";
 var WidgetMetadata = {
   id: "tmdb_full_open_widget",
   title: "TMDB Full Open",
-  description: "热门电影 / 热门剧集 / 高分 / 平台 / 出品公司 - 不屏蔽任何内容，显示当天及以前的剧集",
+  description: "热门电影 / 热门剧集 / 高分 / 平台 / 出品公司 - 不屏蔽任何内容，显示今天及以前首播的剧集",
   author: "ChatGPT",
-  version: "1.6.1",
+  version: "1.7.0",
   requiredVersion: "0.0.1",
 
   modules: [
@@ -65,8 +65,10 @@ function buildUrl(endpoint, params) {
   const dd = String(today.getDate()).padStart(2, '0');
   const todayStr = `${yyyy}-${mm}-${dd}`;
 
-  // 限制 air_date 不超过今天（所有平台）
-  params.air_date_lte = todayStr;
+  // 强制限制首播日期不晚于今天（适用于全部平台）
+  if (endpoint.includes("/discover/tv")) {
+    params['first_air_date.lte'] = todayStr;
+  }
 
   for (let k in params) {
     if (params[k] !== undefined && params[k] !== '') {
