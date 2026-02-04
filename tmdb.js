@@ -10,10 +10,42 @@ var WidgetMetadata = {
   title: "TMDB资源模块",
   description: "",
   author: "Bai",
-  version: "0.0.3",
+  version: "0.0.2",
   requiredVersion: "0.0.1",
 
   modules: [
+    { 
+      title: "TMDB 今日趋势",
+      functionName: "tmdbTrendingToday",
+      cacheDuration: 1800,
+      params: [
+        { name: "media_type", title: "类型", type: "enumeration", value: "all",
+          enumOptions: [
+            { title: "全部", value: "all" },
+            { title: "电影", value: "movie" },
+            { title: "剧集", value: "tv" }
+          ]
+        },
+        { name: "language", title: "语言", type: "language", value: "zh-CN" },
+        { name: "page", title: "页码", type: "page" }
+      ]
+    },
+    { 
+      title: "TMDB 本周趋势",
+      functionName: "tmdbTrendingWeek",
+      cacheDuration: 1800,
+      params: [
+        { name: "media_type", title: "类型", type: "enumeration", value: "all",
+          enumOptions: [
+            { title: "全部", value: "all" },
+            { title: "电影", value: "movie" },
+            { title: "剧集", value: "tv" }
+          ]
+        },
+        { name: "language", title: "语言", type: "language", value: "zh-CN" },
+        { name: "page", title: "页码", type: "page" }
+      ]
+    },
     { 
       title: "TMDB 热门电影", 
       functionName: "tmdbPopularMovies", 
@@ -119,7 +151,7 @@ var WidgetMetadata = {
 };
 
 // =============================
-// 拼接 URL，兼容 Forward
+// 拼接 URL
 // =============================
 function buildUrl(endpoint, params) {
   let url = BASE_URL + endpoint + '?api_key=' + TMDB_API_KEY;
@@ -129,7 +161,6 @@ function buildUrl(endpoint, params) {
   const dd = String(today.getDate()).padStart(2, '0');
   const todayStr = `${yyyy}-${mm}-${dd}`;
 
-  // 强制限制首播日期不晚于今天（适用于 TV）
   if (endpoint.includes("/discover/tv")) {
     params['first_air_date.lte'] = todayStr;
   }
@@ -153,22 +184,32 @@ async function fetchTMDB(endpoint, params = {}) {
 }
 
 // =============================
-// 数据格式化 - 只保留有封面 + TV 显示中文名
+// 数据格式化 - 自适应中文标题 + 只保留有封面
 // =============================
 function formatItems(items, mediaType) {
   return items
-    .filter(i => i.poster_path && i.poster_path.trim() !== "") // 只保留有封面
-    .map(i => ({
-      id: i.id.toString(),
-      type: "tmdb",
-      mediaType: mediaType || (i.title ? "movie" : "tv"),
-      title: mediaType === "tv" ? (i.name || i.original_name) : (i.title || i.original_title),
-      posterPath: IMAGE + i.poster_path,
-      backdropPath: i.backdrop_path ? IMAGE + i.backdrop_path : undefined,
-      releaseDate: i.release_date || i.first_air_date,
-      rating: i.vote_average,
-      description: i.overview
-    }));
+    .filter(i => i.poster_path && i.poster_path.trim() !== "")
+    .map(i => {
+      let title = '';
+      if (mediaType === "tv") {
+        title = (i.name && i.name !== i.original_name) ? i.name : i.original_name;
+      } else {
+        title = (i.title && i.title !== i.original_title) ? i.title : i.original_title;
+      }
+      title = title || i.name || i.original_name || "无标题";
+
+      return {
+        id: i.id.toString(),
+        type: "tmdb",
+        mediaType: mediaType || (i.title ? "movie" : "tv"),
+        title: title,
+        posterPath: IMAGE + i.poster_path,
+        backdropPath: i.backdrop_path ? IMAGE + i.backdrop_path : undefined,
+        releaseDate: i.release_date || i.first_air_date,
+        rating: i.vote_average,
+        description: i.overview
+      };
+    });
 }
 
 // =============================
@@ -224,4 +265,16 @@ async function tmdbDiscoverByCompany(params) {
       description: i.overview,
       company: companyMap[params.with_companies] || "未知公司"
     }));
+}
+
+async function tmdbTrendingToday(params) {
+  const type = params.media_type || "all";
+  const items = await fetchTMDB(`/trending/${type}/day`, params);
+  return formatItems(items, type === "movie" ? "movie" : "tv");
+}
+
+async function tmdbTrendingWeek(params) {
+  const type = params.media_type || "all";
+  const items = await fetchTMDB(`/trending/${type}/week`, params);
+  return formatItems(items, type === "movie" ? "movie" : "tv");
 }
