@@ -8,9 +8,9 @@ const IMAGE = "https://image.tmdb.org/t/p/w500";
 var WidgetMetadata = {
   id: "tmdb_full_open_widget",
   title: "TMDB资源模块",
-  description: "只保留自己用到的",
-  author: "curator",
-  version: "0.0.6",
+  description: "",
+  author: "Bai",
+  version: "0.0.7",
   requiredVersion: "0.0.1",
 
   modules: [
